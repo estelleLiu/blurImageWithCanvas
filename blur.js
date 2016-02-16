@@ -1,5 +1,7 @@
-var canvasWidth = 800;
-var canvasHeight = 600;
+var canvasWidth = window.innerWidth;
+var canvasHeight = window.innerHeight;
+// var canvasWidth = 800;
+// var canvasHeight = 600;
 
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
@@ -11,15 +13,35 @@ canvas.height = canvasHeight;
 //var clippingRegion = {x:400,y:200,r:50};
 //五角星形
 var clippingRegion = {x:400,y:200,R:80,r:40,rot:0};
+
+var leftMargin = 0;
+var topMargin = 0;
+
 var image = new Image();
 image.src = "image.jpg";
 image.onload = function(e){
+	$("#blur-div").css("width", canvasWidth+'px');
+	$("#blur-div").css("height", canvasHeight+'px');
+	$("#blur-image").css("width", image.width+'px');
+	$("#blur-image").css("height", image.height+'px');
+
+	leftMargin = ( image.width - canvas.width )/2;
+	topMargin = ( image.height - canvas.height )/2;
+
+	$("#blur-image").css("top", String( -topMargin ) + 'px');
+	$("#blur-image").css("left", String( -leftMargin ) + 'px');
+
 	initCanvas();
 }
 
 //初始化
 function initCanvas(){
-	clippingRegion = { x:Math.random()*640 + 80, y:Math.random()*440 + 80, R:0, r:0, rot:Math.random()*360 };
+	var theleft = leftMargin<0?-leftMargin:0;
+	var thetop = topMargin<0?-topMargin:0;
+	var R = clippingRegion.R;
+	var r = clippingRegion.r;
+
+	clippingRegion = { x:Math.random()*(canvas.width-2*R-2*theleft)+r+theleft, y:Math.random()*(canvas.height-2*R-2*thetop)+r+thetop, R:0, r:0, rot:Math.random()*360 };
 	//重置小图形展示动画
 	var setAnimate = setInterval(function(){
 		clippingRegion.R += 5;
@@ -59,7 +81,11 @@ function draw(image){
 	context.save();
 	//剪辑区域
 	setClippingRegion();
-	context.drawImage( image, 0, 0);
+	//context.drawImage( image, 0, 0);
+	context.drawImage( image, Math.max(leftMargin,0), Math.max(topMargin,0), 
+		Math.min(canvas.width, image.width), Math.min(canvas.height, image.height),
+		 leftMargin<0 ? -leftMargin:0, topMargin<0 ? -topMargin:0, Math.min(canvas.width, image.width), Math.min(canvas.height, image.height) );
+
 	context.restore();
 }
 
@@ -71,7 +97,7 @@ function show(){
 	// 		clearInterval( theAnimation );
 	// 	}
 	// },30);
-
+	canvas.removeEventListener('mousemove', gua);
 	var theAnimation = setInterval(function(){
 		clippingRegion.R += 20;
 		context.clearRect( 0, 0, canvas.width, canvas.height);
@@ -99,4 +125,9 @@ function gua(e){
 	clippingRegion = { x : e.pageX-bbox.left, y : e.pageY-bbox.top, R:80, r:40, rot : Math.random()*360 };
 	draw( image );
 }
+canvas.addEventListener("touchstart", function(e){
+	e.preventDefault();
+})
+
+
 
